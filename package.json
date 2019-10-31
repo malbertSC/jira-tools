@@ -1,0 +1,22 @@
+{
+    "name": "jira-tools",
+    "version": "0.1.0",
+    "main": "src/index.ts",
+    "repository": "git@github.com:malbertSC/jira-tools.git",
+    "author": "Matthew Albert <matthew.albert@gatherhere.com>",
+    "license": "MIT",
+    "scripts": {
+        "start": "node -r ts-node/register ./src/index.ts",
+        "start:debug": "node -r ts-node/register --inspect-brk ./src/index.ts"
+    },
+    "devDependencies": {
+        "@types/node": "^12.12.3",
+        "prettier": "^1.18.2",
+        "ts-node": "^8.4.1",
+        "typescript": "^3.6.4"
+    },
+    "dependencies": {
+        "axios": "^0.19.0",
+        "dotenv": "^8.2.0"
+    }
+}
