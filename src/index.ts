@@ -1,24 +1,29 @@
 import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
-import { getIssueReport } from "./get-issue-report";
+import { getSprintId, getBoardId, getIssueReport } from "./get-issue-report";
 
-async function main() {
-    const { data: jiraData } = await getIssueReport();
+const [, , cliBoardName, cliSprintId] = process.argv;
 
-    const issueKeysAddedDuringSprint = Object.keys(jiraData.contents.issueKeysAddedDuringSprint);
+(async function main() {
 
-    const completedIssues = jiraData.contents.completedIssues.map((issue) => {
+    const boardId = await getBoardId(cliBoardName || "APP board");
+    const sprintId = cliSprintId || await getSprintId(boardId);
+    const { data: { contents: jiraData } } = await getIssueReport(boardId, sprintId);
+
+    const issueKeysAddedDuringSprint = Object.keys(jiraData.issueKeysAddedDuringSprint);
+
+    const completedIssues = jiraData.completedIssues.map((issue) => {
         return { ...issue, ...{ section: "completed" } };
     });
-    const issuesNotCompletedInCurrentSprint = jiraData.contents.issuesNotCompletedInCurrentSprint.map(
+    const issuesNotCompletedInCurrentSprint = jiraData.issuesNotCompletedInCurrentSprint.map(
         (issue) => {
             return { ...issue, ...{ section: "not completed" } };
         }
     );
-    const puntedIssues = jiraData.contents.puntedIssues.map((issue) => {
+    const puntedIssues = jiraData.puntedIssues.map((issue) => {
         return { ...issue, ...{ section: "punted" } };
     });
-    const issuesCompletedInAnotherSprint = jiraData.contents.issuesCompletedInAnotherSprint.map(
+    const issuesCompletedInAnotherSprint = jiraData.issuesCompletedInAnotherSprint.map(
         (issue) => {
             return { ...issue, ...{ section: "completed in another sprint" } };
         }
@@ -63,25 +68,25 @@ async function main() {
     const pointsPuntedFromOriginalIssues = sumPointsFromIssues(puntedFromOriginalIssues);
 
     const doneAddedIssues = issuesNotOriginallyInSprint.filter((issue) => issue.done);
+    const finalIssueEstimateSum =
+        jiraData.completedIssuesEstimateSum.value + jiraData.issuesNotCompletedEstimateSum.value;
 
     console.log("original estimate: ", pointsFromOriginalIssuesEstimate);
+    console.log("final estimate:", finalIssueEstimateSum);
     console.log(
         "points accomplished from original estimate: ",
         pointsFromOriginalIssuesAccomplished
+    );
+    console.log(
+        "points accomplished from issues added after sprint began: ",
+        sumPointsFromIssues(doneAddedIssues)
     );
     console.log("points punted from original estimate: ", pointsPuntedFromOriginalIssues);
     console.log(
         "issues not done status: ",
         originalIssuesNotDone.map(
             (issue) =>
-                issue.key +
-                " " +
-                (issue.section === "not completed" ? issue.status.name : issue.section)
+                `${issue.key} ${issue.summary} (${(issue.section === "not completed" ? issue.status.name : issue.section)})`
         )
     );
-    console.log(
-        "points accomplished from issues added after sprint began: ",
-        sumPointsFromIssues(doneAddedIssues)
-    );
-}
-main();
+})();
