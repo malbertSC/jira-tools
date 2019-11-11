@@ -59,6 +59,8 @@ const [, , cliBoardName, cliSprintId] = process.argv;
         return !issue.done;
     });
 
+    const originalIssuesEstimateCountNotDone = sumPointsFromIssues(originalIssuesNotDone);
+
     const pointsFromOriginalIssuesNotDone = sumPointsFromIssues(originalIssuesNotDone);
     const pointsFromOriginalIssuesAccomplished =
         pointsFromOriginalIssuesEstimate - pointsFromOriginalIssuesNotDone;
@@ -82,11 +84,21 @@ const [, , cliBoardName, cliSprintId] = process.argv;
         sumPointsFromIssues(doneAddedIssues)
     );
     console.log("points punted from original estimate: ", pointsPuntedFromOriginalIssues);
+    console.log("points not completed from original estimate:", originalIssuesEstimateCountNotDone);
     console.log(
         "issues not done status: ",
         originalIssuesNotDone.map(
             (issue) =>
                 `${issue.key} ${issue.summary} (${(issue.section === "not completed" ? issue.status.name : issue.section)})`
+        )
+    );
+    console.log(
+        "issues added during sprint: ",
+        issuesNotOriginallyInSprint.map(
+            (issue) =>
+                `${issue.key} ${issue.summary} ` +
+                `(${(issue.section === "not completed" ? issue.status.name : issue.section)}) ` +
+                `(${issue.estimateStatistic ? issue.estimateStatistic.statFieldValue.value + ' points' : 'not pointed'})`
         )
     );
 })();
