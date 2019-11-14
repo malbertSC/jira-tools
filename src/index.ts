@@ -71,7 +71,17 @@ const [, , cliBoardName, cliSprintId] = process.argv;
 
     const doneAddedIssues = issuesNotOriginallyInSprint.filter((issue) => issue.done);
     const finalIssueEstimateSum =
-        jiraData.completedIssuesEstimateSum.value + jiraData.issuesNotCompletedEstimateSum.value;
+        (jiraData.completedIssuesEstimateSum.value || 0) + jiraData.issuesNotCompletedEstimateSum.value;
+
+    const printStoriesFor = (storiesArray) => {
+        return storiesArray.map(
+            (issue) =>
+                `${issue.key} ${issue.summary} - (${issue.typeName}) ` +
+                `(${(issue.section === "not completed" ? issue.status.name : issue.section)}) ` +
+                `(${issue.estimateStatistic && issue.estimateStatistic.statFieldValue.value !== undefined ?
+                    issue.estimateStatistic.statFieldValue.value + ' points' : 'not pointed'})`
+        )
+    }
 
     console.log("original estimate: ", pointsFromOriginalIssuesEstimate);
     console.log("final estimate:", finalIssueEstimateSum);
@@ -85,20 +95,7 @@ const [, , cliBoardName, cliSprintId] = process.argv;
     );
     console.log("points punted from original estimate: ", pointsPuntedFromOriginalIssues);
     console.log("points not completed from original estimate:", originalIssuesEstimateCountNotDone);
-    console.log(
-        "issues not done status: ",
-        originalIssuesNotDone.map(
-            (issue) =>
-                `${issue.key} ${issue.summary} (${(issue.section === "not completed" ? issue.status.name : issue.section)})`
-        )
-    );
-    console.log(
-        "issues added during sprint: ",
-        issuesNotOriginallyInSprint.map(
-            (issue) =>
-                `${issue.key} ${issue.summary} ` +
-                `(${(issue.section === "not completed" ? issue.status.name : issue.section)}) ` +
-                `(${issue.estimateStatistic ? issue.estimateStatistic.statFieldValue.value + ' points' : 'not pointed'})`
-        )
-    );
+    console.log("issues not done status: ", printStoriesFor(originalIssuesNotDone));
+    console.log("issues added during sprint: ", printStoriesFor(issuesNotOriginallyInSprint));
+    console.log("issues punted: ", printStoriesFor(puntedFromOriginalIssues));
 })();
