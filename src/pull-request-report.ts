@@ -5,7 +5,7 @@ import * as moment from "moment-business-time";
 import { getPrListQ, getAuthorQ, getCreatedFilter } from "./list-prs";
 import { getGithubToLdapMap } from "./gh-ldap-map";
 import { getPrReviewerInfo } from "./get-reviewer-data";
-import { workingHours } from "./working-hours";
+import { workingHours, holidays } from "./working-hours";
 
 const credentials = {
     headers: {
@@ -18,7 +18,8 @@ const credentials = {
     }
 }
 moment.updateLocale('en', {
-    workinghours: workingHours
+    workinghours: workingHours,
+    holidays
 });
 
 async function main() {

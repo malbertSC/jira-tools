@@ -2,13 +2,14 @@ import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
 import { credentials } from "./credentials";
-import { workingHours } from "./working-hours";
+import { workingHours, holidays } from "./working-hours";
 import { getGithubToLdapMap } from "./gh-ldap-map";
 import * as moment from "moment-business-time";
 import { getAuthorQ, getPrListQ, getCreatedFilter } from "./list-prs";
 
 moment.updateLocale('en', {
-    workinghours: workingHours
+    workinghours: workingHours,
+    holidays
 });
 
 export async function getOpenPrsPastSLO() {
