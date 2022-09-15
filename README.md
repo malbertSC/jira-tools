@@ -1,9 +1,13 @@
 hacky way to get some useful metrics from jira
 
 # install
-- create a jira token (if you don't have one already) -> https://id.atlassian.com/manage/api-tokens
-- run `yarn`
-- create an `.env` file with configs from `.env.test` but tailored to you - use your token as `JIRA_PASSWORD`
+
+-   create a github PAT with repo access -> https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+-   ask matt to send you the csv for GH username <> ldap (or add your own)
+-   run `yarn`
+-   create an `.env` file with configs from `.env.test` but add your own values
 
 # run
-- `yarn start`
+
+-   `yarn get-pr-stats` to get assorted reviewer statistics
+-   `get-prs-past-slo` to get open PRs that are currently exceeding our review SLO
