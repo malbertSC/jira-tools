@@ -18,7 +18,8 @@ export async function getOpenPrsPastSLO() {
     const qs = [
         getAuthorQ(Object.keys(ghUsernameToLdap)),
         getCreatedFilter(moment().subtract(14, "d"), fourWorkingHoursAgo),
-        "review:none"
+        "review:none",
+        "is:open"
     ]
     const openPRs = await getPrListQ(credentials, qs);
     console.log(openPRs.map(pr => pr.pull_request.html_url));
