@@ -20,5 +20,9 @@ export async function getPrListQ(credentials: any, q: Array<String>) {
     const allQs = [...q, ...alwaysApplicableQs];
     const url = `https://api.github.com/search/issues?q=${allQs.join("+")}`;
     const { data } = await axios.get(url, credentials);
-    return data.items;
+    return data.items.filter(item => !isClosedAndUnmerged(item));
+}
+
+function isClosedAndUnmerged(item: any): boolean {
+    return item.state === "closed" && !item.pull_request.merged_at;
 }
