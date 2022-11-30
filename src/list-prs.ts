@@ -18,7 +18,7 @@ export async function getPrListQ(credentials: any, q: Array<String>) {
         "org:squareup"
     ]
     const allQs = [...q, ...alwaysApplicableQs];
-    const url = `https://api.github.com/search/issues?q=${allQs.join("+")}`;
+    const url = `https://api.github.com/search/issues?q=${allQs.join("+")}&per_page=100`;
     const { data } = await axios.get(url, credentials);
     return data.items.filter(item => !isClosedAndUnmerged(item));
 }
