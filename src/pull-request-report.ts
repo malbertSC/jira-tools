@@ -6,6 +6,7 @@ import { getPrListQ, getAuthorQ, getCreatedFilter } from "./list-prs";
 import { getGithubToLdapMap } from "./gh-ldap-map";
 import { getPrReviewerInfo } from "./get-reviewer-data";
 import { workingHours, holidays } from "./working-hours";
+import { getPrRocketComments, RocketComments } from "./get-reaction-rockets";
 
 const credentials = {
     headers: {
@@ -31,6 +32,7 @@ async function main() {
     const recentPrs = await getPrListQ(credentials, qs);
 
     const prReviewerInfo = [];
+    let rocketComments: Array<RocketComments> = [];
     for (const pr of recentPrs) {
         const number = pr.number;
         const repository = pr.repository_url.split("/").at(-1);
@@ -38,6 +40,8 @@ async function main() {
         const createdAt = moment(pr.created_at);
         const parsedData = await getPrReviewerInfo(repository, number, createdAt, githubUsername);
         prReviewerInfo.push(parsedData);
+        const prRocketComments = await getPrRocketComments(repository, number);
+        rocketComments = rocketComments.concat(prRocketComments); 
     }
 
     const prsOutOfSlo = getPrsOutOfSlo(prReviewerInfo);
@@ -46,6 +50,7 @@ async function main() {
     console.log("all", prReviewerInfo.length);
     console.log(getReviewerLeaderboard(prReviewerInfo));
     console.log(getTotalPointsLeaderboard(prReviewerInfo));
+    console.log(rocketComments);
 }
 
 function getPrsOutOfSlo(prs: Array<any>) {
