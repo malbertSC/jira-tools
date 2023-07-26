@@ -17,7 +17,7 @@ export async function getOpenPrsPastSLO() {
     const fourWorkingHoursAgo = getTimeFourWorkingHoursAgo();
     const qs = [
         getAuthorQ(Object.keys(ghUsernameToLdap)),
-        getCreatedFilter(moment().subtract(14, "d"), fourWorkingHoursAgo),
+        getCreatedFilter(moment().subtract(process.env.DAYS_TO_LOOK_BACK, "d"), fourWorkingHoursAgo),
         "review:none",
         "is:open"
     ]
