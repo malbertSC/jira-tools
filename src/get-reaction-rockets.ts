@@ -1,61 +1,7 @@
-import axios from "axios";
-import { credentials } from "./credentials";
+import { getPullRequestData } from "./get-pull-request-data";
 
 export async function getPrRocketComments(repository, prNumber): Promise<Array<RocketComments>> {
-    const graphqlQuery = `
-    query {
-        repository(name: "${repository}" owner: "squareup") {
-          pullRequest(number: ${prNumber}) {
-            reviews(first: 100) {
-              edges {
-                node {
-                  id
-                  body
-                  url
-                  author {
-                    login
-                  }
-                  reactions(first:10) {
-                    edges {
-                      node {
-                        id
-                        content
-                      }
-                    }
-                  }
-                  comments(first:100) {
-                    edges {
-                      node {
-                        id
-                        body
-                        author {
-                          login
-                        }
-                        reactions(first:10) {
-                          edges {
-                            node {
-                              id
-                              content
-                            }
-                          }
-                        }
-                        url
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    `
-    const { data: response } = await axios.post(
-        `https://api.github.com/graphql`, {
-            query: graphqlQuery
-        }, credentials
-    );
-    const reviewData = response.data.repository.pullRequest.reviews.edges;
+    const reviewData = await getPullRequestData(repository, prNumber);
     let rocketComments: Array<RocketComments> = [];
     for (const review of reviewData) {
         const topLevelRockets = getRockets(review.node.reactions.edges);

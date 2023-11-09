@@ -1,20 +1,12 @@
-import axios from "axios";
 import moment = require("moment-business-time");
-import { credentials } from "./credentials";
-
-async function getReviewerData(repository, prNumber) {
-    const { data } = await axios.get(
-        `https://api.github.com/repos/squareup/${repository}/pulls/${prNumber}/reviews`, credentials
-    );
-    return data;
-}
+import { getPullRequestData } from "./get-pull-request-data";
 
 export async function getPrReviewerInfo(repository: string, prNumber: string, createdAt: moment.Moment, githubUsername: string) {
-    const reviewerRawData = await getReviewerData(repository, prNumber);
+    const reviewerRawData = await getPullRequestData(repository, prNumber);
     const reviewerData = reviewerRawData.map((item) => {
         return {
-            user: item.user.login,
-            is_within_slo: isReviewWithinSlo(moment(item.submitted_at), createdAt)
+            user: item.node.author.login,
+            is_within_slo: isReviewWithinSlo(moment(item.node.publishedAt), createdAt)
         }
     }).reduce((accum, item) => {
         if (item.user == githubUsername) return accum;

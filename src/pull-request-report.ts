@@ -27,7 +27,7 @@ async function main() {
     const ghUsernameToLdap = await getGithubToLdapMap();
     const qs = [
         getAuthorQ(Object.keys(ghUsernameToLdap)),
-        getCreatedFilter(moment().subtract(14, "d"), moment())
+        getCreatedFilter(moment().subtract(15, "d"), moment())
     ]
     const recentPrs = await getPrListQ(credentials, qs);
 
