@@ -1,0 +1,72 @@
+yarn run v1.22.19
+$ node -r ts-node/register ./src/pull-request-report.ts
+https://api.github.com/search/issues?q=author:ejamison3+author:kermitnirmit+author:jusroberts+author:thomasmahoney+author:chrisakinrinade+author:arielahdoot+created:2023-11-15T01:24:06-05:00..2023-11-29T01:24:06-05:00+repo:!zzz-archive-java+type:pr+draft:false+org:squareup&per_page=100
+out of SLO 11
+[
+  'java+316200: https://github.com/squareup/java/pull/316200',
+  'tf-esperanto+157: https://github.com/squareup/tf-esperanto/pull/157',
+  'java+316184: https://github.com/squareup/java/pull/316184',
+  'java+316110: https://github.com/squareup/java/pull/316110',
+  'java+315761: https://github.com/squareup/java/pull/315761',
+  'java+315669: https://github.com/squareup/java/pull/315669',
+  'java+315642: https://github.com/squareup/java/pull/315642',
+  'java+315427: https://github.com/squareup/java/pull/315427',
+  'java+315157: https://github.com/squareup/java/pull/315157',
+  'java+315031: https://github.com/squareup/java/pull/315031',
+  'java+314921: https://github.com/squareup/java/pull/314921'
+]
+all 37
+reviewer leaderboard [
+  { user: 'jbr-square', reviews: 11 },
+  { user: 'jusroberts', reviews: 9 },
+  { user: 'thomasmahoney', reviews: 7 },
+  { user: 'chrisakinrinade', reviews: 7 },
+  { user: 'arielahdoot', reviews: 6 },
+  { user: 'ejamison3', reviews: 4 },
+  { user: 'esotericzhang', reviews: 4 },
+  { user: 'kermitnirmit', reviews: 3 },
+  { user: 'RafeSquare', reviews: 3 },
+  { user: 'cmpaul', reviews: 1 },
+  { user: 'joelee-sq', reviews: 1 },
+  { user: 'square-shift[bot]', reviews: 1 },
+  { user: 'awhitney-sq', reviews: 1 },
+  { user: 'GeoffTK', reviews: 1 },
+  { user: 'ckrueger6', reviews: 1 }
+]
+total points [
+  { user: 'thomasmahoney', points: 30 },
+  { user: 'arielahdoot', points: 12 },
+  { user: 'jusroberts', points: 12 },
+  { user: 'jbr-square', points: 11 },
+  { user: 'chrisakinrinade', points: 7 },
+  { user: 'kermitnirmit', points: 7 },
+  { user: 'ejamison3', points: 5 },
+  { user: 'esotericzhang', points: 4 },
+  { user: 'RafeSquare', points: 3 },
+  { user: 'cmpaul', points: 1 },
+  { user: 'joelee-sq', points: 1 },
+  { user: 'square-shift[bot]', points: 1 },
+  { user: 'awhitney-sq', points: 1 },
+  { user: 'GeoffTK', points: 1 },
+  { user: 'ckrueger6', points: 1 }
+]
+rockets [
+  'tf-esperanto',      157,    'java',
+  316184,              'java', 316183,
+  'java',              316110, 'java',
+  316053,              'java', 315818,
+  'java',              315770, 'java',
+  315761,              'java', 315669,
+  'java',              315663, 'java',
+  315662,              'java', 315642,
+  'tf-refundsarbiter', 92,     'java',
+  315433,              'java', 315427,
+  'tf-refundsarbiter', 91,     'java',
+  315266,              'java', 315214,
+  'tf-trovu',          47,     'java',
+  315157,              'java', 315130,
+  'java',              315031, 'java',
+  314923,              'java', 314921,
+  'java',              314887
+]
+Done in 32.19s.

@@ -1,0 +1,71 @@
+yarn run v1.22.19
+$ node -r ts-node/register ./src/pull-request-report.ts
+out of SLO 10
+[
+  'java+316200',
+  'tf-esperanto+157',
+  'java+316184',
+  'java+316110',
+  'java+315669',
+  'java+315427',
+  'java+315157',
+  'java+315031',
+  'java+314921',
+  'java+314588'
+]
+all 35
+reviewer leaderboard [
+  { user: 'jusroberts', reviews: 12 },
+  { user: 'jbr-square', reviews: 7 },
+  { user: 'chrisakinrinade', reviews: 6 },
+  { user: 'thomasmahoney', reviews: 6 },
+  { user: 'arielahdoot', reviews: 5 },
+  { user: 'esotericzhang', reviews: 4 },
+  { user: 'RafeSquare', reviews: 4 },
+  { user: 'ejamison3', reviews: 3 },
+  { user: 'kermitnirmit', reviews: 3 },
+  { user: 'joelee-sq', reviews: 1 },
+  { user: 'square-shift[bot]', reviews: 1 },
+  { user: 'awhitney-sq', reviews: 1 },
+  { user: 'GeoffTK', reviews: 1 },
+  { user: 'ckrueger6', reviews: 1 },
+  { user: 'nnanduri', reviews: 1 }
+]
+total points [
+  { user: 'thomasmahoney', points: 26 },
+  { user: 'jusroberts', points: 15 },
+  { user: 'arielahdoot', points: 11 },
+  { user: 'kermitnirmit', points: 9 },
+  { user: 'jbr-square', points: 7 },
+  { user: 'chrisakinrinade', points: 6 },
+  { user: 'esotericzhang', points: 4 },
+  { user: 'RafeSquare', points: 4 },
+  { user: 'ejamison3', points: 3 },
+  { user: 'joelee-sq', points: 1 },
+  { user: 'square-shift[bot]', points: 1 },
+  { user: 'awhitney-sq', points: 1 },
+  { user: 'GeoffTK', points: 1 },
+  { user: 'ckrueger6', points: 1 },
+  { user: 'nnanduri', points: 1 }
+]
+rockets [
+  {
+    url: 'https://github.com/squareup/java/pull/315669#discussion_r1404649166',
+    body: "ah nice, I was thinking something like this must exist somewhere 🙂 maybe I'll do a follow-up PR to just use that here instead then, thanks!",
+    rockets: 1,
+    ghUsername: 'thomasmahoney'
+  },
+  {
+    url: 'https://github.com/squareup/java/pull/315663#discussion_r1399667985',
+    body: "i really like doing it this way. I don't like having multiple lines of multiple things. ",
+    rockets: 1,
+    ghUsername: 'kermitnirmit'
+  },
+  {
+    url: 'https://github.com/squareup/java/pull/314820#discussion_r1394434167',
+    body: 'We can finally delete meenals TODO in the comment!',
+    rockets: 1,
+    ghUsername: 'chrisakinrinade'
+  }
+]
+Done in 38.38s.

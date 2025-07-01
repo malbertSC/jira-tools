@@ -8,7 +8,7 @@ export const workingHours = {
     6: null
 };
 export const holidays = [
-    "2020-09-12",
+    "2025-07-04",
     "2020-09-13",
     "2020-09-14",
     "2020-09-15"
