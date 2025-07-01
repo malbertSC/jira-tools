@@ -109,4 +109,4 @@ function getTotalPointsLeaderboard(prs: Array<any>) {
     }).sort((a, b) => b.points - a.points);
 }
 
-main();
+main(); 
