@@ -24,16 +24,11 @@ moment.updateLocale('en', {
 });
 
 async function main() {
-    const label = process.argv[2];
-    if (!label) {
-        console.error("Usage: node pull-request-report-for-label.ts <label>");
-        process.exit(1);
-    }
+ 
     const ghUsernameToLdap = await getGithubToLdapMap();
     const qs = [
         getAuthorQ(Object.keys(ghUsernameToLdap)),
-        getCreatedFilter(moment().subtract(15, "d"), moment()),
-        `label:${label}`
+        getCreatedFilter(moment().subtract(15, "d"), moment())
     ];
     const recentPrs = await getPrListQ(credentials, qs);
 
