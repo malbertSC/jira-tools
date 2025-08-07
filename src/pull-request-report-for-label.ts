@@ -7,6 +7,7 @@ import { getGithubToLdapMap } from "./gh-ldap-map";
 import { getPrReviewerInfo } from "./get-reviewer-data";
 import { workingHours, holidays } from "./working-hours";
 import { getPrRocketComments, RocketComments } from "./get-reaction-rockets";
+import { getDaysToLookBack } from "./utils";
 
 const credentials = {
     headers: {
@@ -32,7 +33,7 @@ async function main() {
     const ghUsernameToLdap = await getGithubToLdapMap();
     const qs = [
         getAuthorQ(Object.keys(ghUsernameToLdap)),
-        getCreatedFilter(moment().subtract(15, "d"), moment()),
+        getCreatedFilter(moment().subtract(getDaysToLookBack(), "d"), moment()),
         `label:${label}`
     ];
     const recentPrs = await getPrListQ(credentials, qs);

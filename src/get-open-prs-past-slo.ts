@@ -6,6 +6,7 @@ import { workingHours, holidays } from "./working-hours";
 import { getGithubToLdapMap } from "./gh-ldap-map";
 import * as moment from "moment-business-time";
 import { getAuthorQ, getPrListQ, getCreatedFilter } from "./list-prs";
+import { getDaysToLookBack } from "./utils";
 
 moment.updateLocale('en', {
     workinghours: workingHours,
@@ -17,7 +18,7 @@ export async function getOpenPrsPastSLO() {
     const fourWorkingHoursAgo = getTimeFourWorkingHoursAgo();
     const qs = [
         getAuthorQ(Object.keys(ghUsernameToLdap)),
-        getCreatedFilter(moment().subtract(process.env.DAYS_TO_LOOK_BACK, "d"), fourWorkingHoursAgo),
+        getCreatedFilter(moment().subtract(getDaysToLookBack(), "d"), fourWorkingHoursAgo),
         "review:none",
         "is:open"
     ]
