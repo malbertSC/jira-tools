@@ -1,5 +1,6 @@
 import moment = require("moment-business-time");
 import { getPullRequestData } from "./get-pull-request-data";
+import { getSloHours } from "./utils";
 
 export async function getPrReviewerInfo(repository: string, prNumber: string, createdAt: moment.Moment, githubUsername: string) {
     const reviewerRawData = await getPullRequestData(repository, prNumber);
@@ -31,9 +32,10 @@ export async function getPrReviewerInfo(repository: string, prNumber: string, cr
 }
 
 function isReviewWithinSlo(reviewSubmitted: moment.Moment, prSubmitted: moment.Moment): boolean {
+    const SLO_HOURS = getSloHours();
     const diffTime = reviewSubmitted.workingDiff(prSubmitted);
     const diffHours = convertMsToAbsoluteHours(diffTime);
-    return diffHours <= 4;
+    return diffHours <= SLO_HOURS;
 }
 
 function convertMsToAbsoluteHours(timeDiffInMs) {
