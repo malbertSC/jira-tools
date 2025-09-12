@@ -33,8 +33,15 @@ Otherwise, you'll need to create a fine-grained PAT:
 
 The number of days to look back can be configured using the `DAYS_TO_LOOK_BACK` environment variable:
 
--   Add to your `.env` file: `DAYS_TO_LOOK_BACK=30`
--   Default fallback: 15 days
+You can configure the following environment variables in your `.env` file:
+
+-   `DAYS_TO_LOOK_BACK=30`  
+    Number of days to look back for PRs and activity.  
+    Default fallback: 15 days
+
+-   `SLO_HOURS=4`  
+    Number of working hours allowed for SLO (Service Level Objective) review window.  
+    Default fallback: 4 hours
 
 # quirks & limitations
 
