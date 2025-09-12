@@ -51,9 +51,10 @@ async function main() {
     const prsOutOfSlo = getPrsOutOfSlo(prReviewerInfo);
     const reviewerLeaderboard = getReviewerLeaderboard(prReviewerInfo);
     const pointsLeaderboard = getTotalPointsLeaderboard(prReviewerInfo);
+    const throughputStats = calculatePrThroughput(prReviewerInfo);
 
     if (formatAsReport) {
-        generateFormattedReport(prsOutOfSlo, prReviewerInfo, reviewerLeaderboard, pointsLeaderboard, rocketComments, ghUsernameToLdap);
+        generateFormattedReport(prsOutOfSlo, prReviewerInfo, reviewerLeaderboard, pointsLeaderboard, rocketComments, ghUsernameToLdap, throughputStats);
     } else {
         // Original output format
         console.log("out of SLO", prsOutOfSlo.length);
@@ -115,13 +116,51 @@ function getTotalPointsLeaderboard(prs: Array<any>) {
     }).sort((a, b) => b.points - a.points);
 }
 
+function calculatePrThroughput(prs: Array<any>) {
+    // Group PRs by author and week
+    const prsByAuthorByWeek = prs.reduce((accum, pr) => {
+        const author = pr.author;
+        const createdAt = moment(pr.created_at);
+        // Get the week number and year (e.g., "2023-W42")
+        const weekKey = createdAt.format('YYYY-[W]WW');
+        
+        if (!accum[author]) {
+            accum[author] = {};
+        }
+        if (!accum[author][weekKey]) {
+            accum[author][weekKey] = 0;
+        }
+        accum[author][weekKey]++;
+        return accum;
+    }, {} as Record<string, Record<string, number>>);
+    
+    // Calculate statistics for each author
+    const throughputStats = Object.entries(prsByAuthorByWeek).map(([author, weekData]) => {
+        const totalPRs = Object.values(weekData).reduce((sum, count) => sum + count, 0);
+        const weeksCount = Object.keys(weekData).length;
+        const avgPRsPerWeek = weeksCount > 0 ? (totalPRs / weeksCount) : 0;
+        
+        return {
+            author,
+            totalPRs,
+            weeksWithActivity: weeksCount,
+            avgPRsPerWeek: parseFloat(avgPRsPerWeek.toFixed(1)),  // Round to 1 decimal place
+            weeklyBreakdown: weekData
+        };
+    });
+    
+    // Sort by average PRs per week (highest first)
+    return throughputStats.sort((a, b) => b.avgPRsPerWeek - a.avgPRsPerWeek);
+}
+
 function generateFormattedReport(
     prsOutOfSlo: Array<any>, 
     allPrs: Array<any>, 
     reviewerLeaderboard: Array<any>, 
     pointsLeaderboard: Array<any>, 
     rocketComments: Array<RocketComments>,
-    ghUsernameToLdap: Record<string, string>
+    ghUsernameToLdap: Record<string, string>,
+    throughputStats: Array<any>
 ) {
     const sloHours = getSloHours();
     const totalPrs = allPrs.length;
@@ -160,7 +199,7 @@ ${sloPercentage === 100
     const topContributors = pointsLeaderboard.slice(0, 3);
     topContributors.forEach((contributor, index) => {
         const ldapName = convertToLdap(contributor.user);
-        const medal = index === 0 ? ':trophy:' : medals[index];
+        const medal = medals[index];
         
         // Calculate authored vs reviewed breakdown
         const authoredPrs = allPrs.filter(pr => pr.author === contributor.user).length;
@@ -205,9 +244,27 @@ ${sloPercentage === 100
     : `**${sloPercentage >= 80 ? 'Great' : 'Keep working on'} performance this period!** ${prsWithinSlo} out of ${totalPrs} PRs were reviewed within the ${sloHours}-hour SLO.`
 }`);
 
+    // PR Throughput section
+    console.log(`
+## Team PR Throughput`);    
+
+    if (throughputStats.length > 0) {        
+        // Calculate team statistics
+        const teamTotalPRs = throughputStats.reduce((sum, dev) => sum + dev.totalPRs, 0);
+        // Get number of active contributors
+        const activeContributors = throughputStats.length;
+        const prPerDeveloper = parseFloat((teamTotalPRs / activeContributors).toFixed(1));
+        
+        console.log(`**${prPerDeveloper} PRs per developer** (${teamTotalPRs} total PRs / ${activeContributors} developers)`);
+        console.log(`**${teamTotalPRs} total PRs merged** in the last ${getDaysToLookBack()} days`);
+        console.log(`**${activeContributors} active contributors** creating PRs`);    
+    } else {
+        console.log(`No merged PR data available for throughput calculation.`);
+    }
+
     // Note about unmapped usernames
-    const unmappedUsers = [...reviewerLeaderboard, ...pointsLeaderboard]
-        .map(item => item.user)
+    const unmappedUsers = [...reviewerLeaderboard, ...pointsLeaderboard, ...throughputStats.map(item => item.author)]
+        .map(item => typeof item === 'string' ? item : item.user || item.author)
         .filter((user, index, arr) => arr.indexOf(user) === index) // unique
         .filter(user => !ghUsernameToLdap[user]);
     
