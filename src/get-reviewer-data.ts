@@ -26,7 +26,8 @@ export async function getPrReviewerInfo(repository: string, prNumber: string, cr
         reviewers: reviewerData,
         author: githubUsername,
         pr_number: prNumber,
-        repository
+        repository,
+        created_at: createdAt.toISOString()
     }
 
 }
