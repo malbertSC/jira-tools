@@ -18,7 +18,23 @@ hacky way to get some useful metrics from ~~jira~~ github
 # run
 
 -   `yarn get-pr-stats` to get assorted reviewer statistics
--   `get-prs-past-slo` to get open PRs that are currently exceeding our review SLO
+-   `yarn get-prs-past-slo` to get open PRs that are currently exceeding our review SLO
+-   `yarn user-activity <username>` to get activity report for a specific user
+-   `yarn get-pr-stats-for-label <label>` to get PR stats for a specific label
+
+# configuration
+
+The number of days to look back can be configured using the `DAYS_TO_LOOK_BACK` environment variable:
+
+You can configure the following environment variables in your `.env` file:
+
+-   `DAYS_TO_LOOK_BACK=30`  
+    Number of days to look back for PRs and activity.  
+    Default fallback: 15 days
+
+-   `SLO_HOURS=4`  
+    Number of working hours allowed for SLO (Service Level Objective) review window.  
+    Default fallback: 4 hours
 
 # quirks & limitations
 

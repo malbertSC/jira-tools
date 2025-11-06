@@ -1,0 +1,6 @@
+{
+    "scripts": {
+        "setup": "yarn install; cp $CONDUCTOR_ROOT_PATH/.env .env; cp $CONDUCTOR_ROOT_PATH/github-username-to-ldap.csv github-username-to-ldap.csv",
+        "run": "yarn get-pr-stats:report"
+    }
+}

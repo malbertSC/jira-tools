@@ -7,6 +7,7 @@ import { getGithubToLdapMap } from "./gh-ldap-map";
 import { getPrReviewerInfo } from "./get-reviewer-data";
 import { workingHours, holidays } from "./working-hours";
 import { getPrRocketComments, RocketComments } from "./get-reaction-rockets";
+import { getDaysToLookBack } from "./utils";
 
 const credentials = {
     headers: {
@@ -32,7 +33,7 @@ async function main() {
     const ghUsernameToLdap = await getGithubToLdapMap();
     const qs = [
         getAuthorQ(Object.keys(ghUsernameToLdap)),
-        getCreatedFilter(moment().subtract(15, "d"), moment()),
+        getCreatedFilter(moment().subtract(getDaysToLookBack(), "d"), moment()),
         `label:${label}`
     ];
     const recentPrs = await getPrListQ(credentials, qs);
@@ -52,7 +53,7 @@ async function main() {
 
     const prsOutOfSlo = getPrsOutOfSlo(prReviewerInfo);
     console.log("out of SLO", prsOutOfSlo.length);
-    console.log(prsOutOfSlo.map(pr => `${pr.repository}+${pr.pr_number}`))
+    console.log(prsOutOfSlo.map(pr => `https://github.com/squareup/${pr.repository}/pull/${pr.pr_number}`))
     console.log("all", prReviewerInfo.length);
     console.log(getReviewerLeaderboard(prReviewerInfo));
     console.log(getTotalPointsLeaderboard(prReviewerInfo));
@@ -84,6 +85,11 @@ function getReviewerLeaderboard(prs: Array<any>) {
         }
     }).sort((a, b) => b.reviews - a.reviews);
 }
+// In this context, "reviews" refers to the number of times a user has acted as a reviewer on pull requests (PRs)—that is, how many PRs they have reviewed.
+// "Points" refers to the total number of PRs a user has participated in, either as an author (creator) or as a reviewer. 
+// In the getTotalPointsLeaderboard function, each PR author and each reviewer receives one point per PR they are involved with.
+// Therefore, the "reviews" leaderboard shows who has reviewed the most PRs, while the "points" leaderboard shows overall participation (as author or reviewer) in PRs.
+
 
 function getTotalPointsLeaderboard(prs: Array<any>) {
     const pointsByUser = prs.reduce((accum, iter) => {
