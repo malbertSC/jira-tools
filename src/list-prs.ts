@@ -6,8 +6,8 @@ export function getAuthorQ(authors: Array<String>) {
 }
 
 export function getCreatedFilter(createdFrom: moment.Moment, createdTo: moment.Moment) {
-    const createdFromFilter = createdFrom.format("YYYY-MM-DDThh:mm:ssZ");
-    const createdToFilter = createdTo.format("YYYY-MM-DDThh:mm:ssZ");
+    const createdFromFilter = createdFrom.format("YYYY-MM-DDTHH:mm:ssZ");
+    const createdToFilter = createdTo.format("YYYY-MM-DDTHH:mm:ssZ");
     return `created:${createdFromFilter}..${createdToFilter}`;
 }
 export async function getPrListQ(credentials: any, q: Array<String>) {

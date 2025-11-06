@@ -9,6 +9,7 @@ import { workingHours, holidays } from "./working-hours";
 import { getPrRocketComments, RocketComments } from "./get-reaction-rockets";
 import { getDaysToLookBack, getSloHours } from "./utils";
 import { credentials } from "./credentials";
+import { isBot } from "./bot-filter";
 moment.updateLocale('en', {
     workinghours: workingHours,
     holidays
@@ -35,7 +36,9 @@ async function main() {
         const parsedData = await getPrReviewerInfo(repository, number, createdAt, githubUsername);
         prReviewerInfo.push(parsedData);
         const prRocketComments = await getPrRocketComments(repository, number);
-        rocketComments = rocketComments.concat(prRocketComments); 
+        // Filter out rocket comments from bots
+        const humanRocketComments = prRocketComments.filter(comment => !isBot(comment.ghUsername as string));
+        rocketComments = rocketComments.concat(humanRocketComments);
     }
 
     const prsOutOfSlo = getPrsOutOfSlo(prReviewerInfo);
@@ -67,6 +70,9 @@ function getReviewerLeaderboard(prs: Array<any>) {
         const reviewers = iter.reviewers;
         if (!reviewers) return accum;
         for (const reviewer of reviewers) {
+            // Skip bot accounts
+            if (isBot(reviewer.user)) continue;
+
             if (!accum[reviewer.user]) {
                 accum[reviewer.user] = 0;
             }
@@ -84,13 +90,20 @@ function getReviewerLeaderboard(prs: Array<any>) {
 
 function getTotalPointsLeaderboard(prs: Array<any>) {
     const pointsByUser = prs.reduce((accum, iter) => {
-        if (!accum[iter.author]) {
-            accum[iter.author] = 0;
+        // Skip bot authors
+        if (!isBot(iter.author)) {
+            if (!accum[iter.author]) {
+                accum[iter.author] = 0;
+            }
+            accum[iter.author]++;
         }
-        accum[iter.author]++;
+
         const reviewers = iter.reviewers;
         if (!reviewers) return accum;
         for (const reviewer of reviewers) {
+            // Skip bot reviewers
+            if (isBot(reviewer.user)) continue;
+
             if (!accum[reviewer.user]) {
                 accum[reviewer.user] = 0;
             }
