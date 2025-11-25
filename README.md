@@ -21,6 +21,7 @@ hacky way to get some useful metrics from ~~jira~~ github
 -   `yarn get-prs-past-slo` to get open PRs that are currently exceeding our review SLO
 -   `yarn user-activity <username>` to get activity report for a specific user
 -   `yarn get-pr-stats-for-label <label>` to get PR stats for a specific label
+-   `yarn label-contributor-stats [label] [days]` to analyze PRs by label with internal/external contributor comparison (see [LABEL_CONTRIBUTOR_STATS.md](./LABEL_CONTRIBUTOR_STATS.md) for details)
 
 # configuration
 

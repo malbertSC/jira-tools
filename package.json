@@ -15,6 +15,8 @@
         "get-prs-past-slo": "node -r ts-node/register ./src/get-open-prs-past-slo",
         "get-prs-past-slo:debug": "node -r ts-node/register --inspect-brk ./src/get-open-prs-past-slo",
         "get-pr-stats-for-label": "node -r ts-node/register ./src/pull-request-report-for-label.ts",
+        "label-contributor-stats": "node -r ts-node/register ./src/label-contributor-stats.ts",
+        "label-contributor-stats:debug": "node -r ts-node/register --inspect-brk ./src/label-contributor-stats.ts",
         "user-activity": "node -r ts-node/register ./src/user-activity-report.ts",
         "user-activity:debug": "node -r ts-node/register --inspect-brk ./src/user-activity-report.ts"
     },
