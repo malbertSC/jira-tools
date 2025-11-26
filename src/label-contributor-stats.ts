@@ -30,6 +30,8 @@ interface PRAnalytics {
     externalPRs: number;
     internalAvgApprovalHours: number;
     externalAvgApprovalHours: number;
+    internalMedianApprovalHours: number;
+    externalMedianApprovalHours: number;
     externalPRsList: Array<{
         author: string;
         prNumber: string;
@@ -51,8 +53,10 @@ interface PRAnalytics {
 async function main() {
     const label = process.argv[2] || "esperanto";
     const daysToLookBack = parseInt(process.argv[3]) || getDaysToLookBack();
+    const repo = process.argv.find(arg => arg.startsWith("--repo="))?.split("=")[1];
 
-    console.log(`\n📊 Analyzing PRs with label: "${label}" over the last ${daysToLookBack} days\n`);
+    const repoInfo = repo ? ` in repo: ${repo}` : "";
+    console.log(`\n📊 Analyzing PRs with label: "${label}" over the last ${daysToLookBack} days${repoInfo}\n`);
 
     const ghUsernameToLdap = await getGithubToLdapMap();
     const internalUsers = new Set(Object.keys(ghUsernameToLdap));
@@ -62,7 +66,7 @@ async function main() {
         getCreatedFilter(moment().subtract(daysToLookBack, "d"), moment()),
         `label:${label}`
     ];
-    const recentPrs = await getPrListQ(credentials, qs);
+    const recentPrs = await getPrListQ(credentials, qs, repo);
 
     console.log(`Found ${recentPrs.length} PRs with label "${label}"\n`);
 
@@ -72,6 +76,8 @@ async function main() {
         externalPRs: 0,
         internalAvgApprovalHours: 0,
         externalAvgApprovalHours: 0,
+        internalMedianApprovalHours: 0,
+        externalMedianApprovalHours: 0,
         externalPRsList: [],
         internalPRsList: []
     };
@@ -136,6 +142,19 @@ async function main() {
         ? externalTotalHours / externalPRsWithApproval
         : 0;
 
+    // Calculate medians
+    const internalApprovalTimes = analytics.internalPRsList
+        .filter(pr => pr.approvalHours !== null)
+        .map(pr => pr.approvalHours as number)
+        .sort((a, b) => a - b);
+    const externalApprovalTimes = analytics.externalPRsList
+        .filter(pr => pr.approvalHours !== null)
+        .map(pr => pr.approvalHours as number)
+        .sort((a, b) => a - b);
+
+    analytics.internalMedianApprovalHours = calculateMedian(internalApprovalTimes);
+    analytics.externalMedianApprovalHours = calculateMedian(externalApprovalTimes);
+
     // Print summary
     printSummary(analytics, label, daysToLookBack);
 
@@ -179,17 +198,30 @@ function printSummary(analytics: PRAnalytics, label: string, days: number) {
     const internalPRsWithApproval = analytics.internalPRsList.filter(pr => pr.approvalHours !== null).length;
     const externalPRsWithApproval = analytics.externalPRsList.filter(pr => pr.approvalHours !== null).length;
 
-    console.log("⏱️  Average Time to First Approval:");
-    console.log(`├─ Internal: ${analytics.internalAvgApprovalHours.toFixed(2)} hours (${internalPRsWithApproval} PRs approved)`);
-    console.log(`└─ External: ${analytics.externalAvgApprovalHours.toFixed(2)} hours (${externalPRsWithApproval} PRs approved)\n`);
+    console.log("⏱️  Time to First Approval:");
+    console.log(`   Internal (${internalPRsWithApproval} PRs approved):`);
+    console.log(`   ├─ Average: ${analytics.internalAvgApprovalHours.toFixed(2)} hours`);
+    console.log(`   └─ Median:  ${analytics.internalMedianApprovalHours.toFixed(2)} hours`);
+    console.log(`   External (${externalPRsWithApproval} PRs approved):`);
+    console.log(`   ├─ Average: ${analytics.externalAvgApprovalHours.toFixed(2)} hours`);
+    console.log(`   └─ Median:  ${analytics.externalMedianApprovalHours.toFixed(2)} hours\n`);
 
     if (analytics.externalAvgApprovalHours > 0 && analytics.internalAvgApprovalHours > 0) {
-        const diff = analytics.externalAvgApprovalHours - analytics.internalAvgApprovalHours;
-        const pctDiff = ((diff / analytics.internalAvgApprovalHours) * 100).toFixed(1);
-        if (diff > 0) {
-            console.log(`📊 External PRs take ${diff.toFixed(2)} hours longer (${pctDiff}% slower)\n`);
+        const avgDiff = analytics.externalAvgApprovalHours - analytics.internalAvgApprovalHours;
+        const avgPctDiff = ((avgDiff / analytics.internalAvgApprovalHours) * 100).toFixed(1);
+        const medianDiff = analytics.externalMedianApprovalHours - analytics.internalMedianApprovalHours;
+        const medianPctDiff = ((medianDiff / analytics.internalMedianApprovalHours) * 100).toFixed(1);
+
+        console.log(`📊 Comparison (External vs Internal):`);
+        if (avgDiff > 0) {
+            console.log(`   Average: ${avgDiff.toFixed(2)} hours longer (${avgPctDiff}% slower)`);
         } else {
-            console.log(`📊 External PRs are ${Math.abs(diff).toFixed(2)} hours faster (${Math.abs(parseFloat(pctDiff))}% faster)\n`);
+            console.log(`   Average: ${Math.abs(avgDiff).toFixed(2)} hours faster (${Math.abs(parseFloat(avgPctDiff))}% faster)`);
+        }
+        if (medianDiff > 0) {
+            console.log(`   Median:  ${medianDiff.toFixed(2)} hours longer (${medianPctDiff}% slower)\n`);
+        } else {
+            console.log(`   Median:  ${Math.abs(medianDiff).toFixed(2)} hours faster (${Math.abs(parseFloat(medianPctDiff))}% faster)\n`);
         }
     }
 
@@ -227,6 +259,19 @@ function printDetailedList(analytics: PRAnalytics) {
     }
 
     console.log("\n");
+}
+
+function calculateMedian(values: number[]): number {
+    if (values.length === 0) return 0;
+
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+
+    if (sorted.length % 2 === 0) {
+        return (sorted[mid - 1] + sorted[mid]) / 2;
+    } else {
+        return sorted[mid];
+    }
 }
 
 main().catch(err => {
