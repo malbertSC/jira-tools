@@ -2,16 +2,11 @@ import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
 import { credentials } from "./credentials";
-import { workingHours, holidays } from "./working-hours";
 import { getGithubToLdapMap } from "./gh-ldap-map";
-import * as moment from "moment-business-time";
 import { getAuthorQ, getPrListQ, getCreatedFilter } from "./list-prs";
-import { getDaysToLookBack, getSloHours } from "./utils";
+import { getDaysToLookBack, getSloHours, initializeMoment, moment } from "./utils";
 
-moment.updateLocale('en', {
-    workinghours: workingHours,
-    holidays
-});
+initializeMoment();
 
 export async function getOpenPrsPastSLO() {
     const ghUsernameToLdap = await getGithubToLdapMap();

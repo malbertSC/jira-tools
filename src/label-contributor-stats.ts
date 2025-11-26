@@ -1,28 +1,13 @@
 import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
-import * as moment from "moment-business-time";
 import { getPrListQ, getCreatedFilter } from "./list-prs";
 import { getGithubToLdapMap } from "./gh-ldap-map";
 import { getPrReviewerInfo } from "./get-reviewer-data";
-import { workingHours, holidays } from "./working-hours";
-import { getDaysToLookBack } from "./utils";
+import { getDaysToLookBack, initializeMoment, moment, calculateMedian } from "./utils";
+import { credentials } from "./credentials";
 
-const credentials = {
-    headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/vnd.github+json"
-    },
-    auth: {
-        username: process.env.GITHUB_USERNAME ?? "",
-        password: process.env.GITHUB_PAT ?? ""
-    }
-}
-
-moment.updateLocale('en', {
-    workinghours: workingHours,
-    holidays
-});
+initializeMoment();
 
 interface PRAnalytics {
     totalPRs: number;
@@ -259,19 +244,6 @@ function printDetailedList(analytics: PRAnalytics) {
     }
 
     console.log("\n");
-}
-
-function calculateMedian(values: number[]): number {
-    if (values.length === 0) return 0;
-
-    const sorted = [...values].sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-
-    if (sorted.length % 2 === 0) {
-        return (sorted[mid - 1] + sorted[mid]) / 2;
-    } else {
-        return sorted[mid];
-    }
 }
 
 main().catch(err => {

@@ -1,25 +1,11 @@
 import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
-import * as moment from "moment-business-time";
 import { getPrListQ, getCreatedFilter } from "./list-prs";
-import { workingHours, holidays } from "./working-hours";
+import { initializeMoment, moment } from "./utils";
+import { credentials } from "./credentials";
 
-const credentials = {
-    headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/vnd.github+json"
-    },
-    auth: {
-        username: process.env.GITHUB_USERNAME ?? "",
-        password: process.env.GITHUB_PAT ?? ""
-    }
-}
-
-moment.updateLocale('en', {
-    workinghours: workingHours,
-    holidays
-});
+initializeMoment();
 
 async function main() {
     const hasLabel = process.argv[2] || "esperanto";
