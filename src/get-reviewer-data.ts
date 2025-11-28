@@ -10,9 +10,9 @@ export async function getPrReviewerInfo(repository: string, prNumber: string, cr
             is_within_slo: isReviewWithinSlo(moment(item.node.publishedAt), createdAt)
         }
     }).reduce((accum, item) => {
-        if (item.user == githubUsername) return accum;
+        if (item.user === githubUsername) return accum;
         const accumReviewsForUser = accum.filter(review => review.user === item.user);
-        if (accumReviewsForUser.length == 0) {
+        if (accumReviewsForUser.length === 0) {
             accum.push(item);
         } else {
             const review = accumReviewsForUser[0];

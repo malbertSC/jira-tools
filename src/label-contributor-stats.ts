@@ -1,6 +1,7 @@
 import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
+import axios from "axios";
 import { getPrListQ, getCreatedFilter } from "./list-prs";
 import { getGithubToLdapMap } from "./gh-ldap-map";
 import { getPrReviewerInfo } from "./get-reviewer-data";
@@ -150,8 +151,6 @@ async function main() {
 }
 
 async function getDetailedReviewerData(repository: string, prNumber: string): Promise<{ firstApprovalTime: string | null }> {
-    const axios = require("axios");
-
     try {
         const url = `https://api.github.com/repos/squareup/${repository}/pulls/${prNumber}/reviews`;
         const { data } = await axios.get(url, credentials);
