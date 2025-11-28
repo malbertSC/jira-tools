@@ -86,8 +86,8 @@ async function main() {
         // Calculate time to first approval
         let approvalHours: number | null = null;
         if (parsedData.reviewers && parsedData.reviewers.length > 0) {
-            // Find the earliest approval time
-            const reviewerData = await getDetailedReviewerData(repository, number);
+            // Find the earliest approval time from an internal contributor
+            const reviewerData = await getDetailedReviewerData(repository, number, internalUsers);
             if (reviewerData.firstApprovalTime) {
                 const diffMs = moment(reviewerData.firstApprovalTime).diff(createdAt);
                 approvalHours = diffMs / 1000 / 60 / 60; // Convert to hours
@@ -150,13 +150,17 @@ async function main() {
     }
 }
 
-async function getDetailedReviewerData(repository: string, prNumber: string): Promise<{ firstApprovalTime: string | null }> {
+async function getDetailedReviewerData(repository: string, prNumber: string, internalUsers: Set<string>): Promise<{ firstApprovalTime: string | null }> {
     try {
         const url = `https://api.github.com/repos/squareup/${repository}/pulls/${prNumber}/reviews`;
         const { data } = await axios.get(url, credentials);
 
-        // Find first approval
-        const approvals = data.filter((review: any) => review.state === "APPROVED");
+        // Find first approval from an internal contributor
+        const approvals = data.filter((review: any) =>
+            review.state === "APPROVED" &&
+            review.user?.login &&
+            internalUsers.has(review.user.login)
+        );
         if (approvals.length > 0) {
             const sortedApprovals = approvals.sort((a: any, b: any) =>
                 new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime()
@@ -182,7 +186,7 @@ function printSummary(analytics: PRAnalytics, label: string, days: number) {
     const internalPRsWithApproval = analytics.internalPRsList.filter(pr => pr.approvalHours !== null).length;
     const externalPRsWithApproval = analytics.externalPRsList.filter(pr => pr.approvalHours !== null).length;
 
-    console.log("⏱️  Time to First Approval:");
+    console.log("⏱️  Time to First Internal Approval:");
     console.log(`   Internal (${internalPRsWithApproval} PRs approved):`);
     console.log(`   ├─ Average: ${analytics.internalAvgApprovalHours.toFixed(2)} hours`);
     console.log(`   └─ Median:  ${analytics.internalMedianApprovalHours.toFixed(2)} hours`);
@@ -224,7 +228,7 @@ function printDetailedList(analytics: PRAnalytics) {
             console.log(`\n${pr.author} - ${pr.repository}#${pr.prNumber}`);
             console.log(`  URL: ${pr.url}`);
             console.log(`  Created: ${pr.createdAt}`);
-            console.log(`  Time to approval: ${pr.approvalHours !== null ? pr.approvalHours.toFixed(2) + ' hours' : 'Not yet approved'}`);
+            console.log(`  Time to internal approval: ${pr.approvalHours !== null ? pr.approvalHours.toFixed(2) + ' hours' : 'Not yet approved by internal reviewer'}`);
         });
     }
 
@@ -238,7 +242,7 @@ function printDetailedList(analytics: PRAnalytics) {
             console.log(`\n${pr.author} - ${pr.repository}#${pr.prNumber}`);
             console.log(`  URL: ${pr.url}`);
             console.log(`  Created: ${pr.createdAt}`);
-            console.log(`  Time to approval: ${pr.approvalHours !== null ? pr.approvalHours.toFixed(2) + ' hours' : 'Not yet approved'}`);
+            console.log(`  Time to internal approval: ${pr.approvalHours !== null ? pr.approvalHours.toFixed(2) + ' hours' : 'Not yet approved by internal reviewer'}`);
         });
     }
 
