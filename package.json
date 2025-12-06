@@ -19,7 +19,9 @@
         "label-contributor-stats:debug": "node -r ts-node/register --inspect-brk ./src/label-contributor-stats.ts",
         "label-comparison": "node -r ts-node/register ./src/label-comparison.ts",
         "user-activity": "node -r ts-node/register ./src/user-activity-report.ts",
-        "user-activity:debug": "node -r ts-node/register --inspect-brk ./src/user-activity-report.ts"
+        "user-activity:debug": "node -r ts-node/register --inspect-brk ./src/user-activity-report.ts",
+        "ldap-yearly-stats": "node -r ts-node/register ./src/ldap-yearly-stats.ts",
+        "ldap-yearly-review-stats": "node -r ts-node/register ./src/ldap-yearly-review-stats.ts"
     },
     "devDependencies": {
         "@types/node": "^12.12.3",
