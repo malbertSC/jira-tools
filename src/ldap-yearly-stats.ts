@@ -1,13 +1,17 @@
 import { moment } from "./utils";
 import {
-    parseCliArgs,
+    parseExtendedCliArgs,
+    printUsage,
     resolveGithubUsername,
     getDateRange,
     paginatedGraphQLSearch,
     categorizePR,
     PRCategory,
     printMonthlyTrendChart,
-    printQuarterlyComparison
+    printQuarterlyComparison,
+    saveStatsToFile,
+    loadStatsFromFile,
+    CachedStatsFile
 } from "./ldap-stats-common";
 
 interface PRStats {
@@ -159,7 +163,7 @@ function printReport(stats: YearlyStats): void {
         { key: "application", label: "Application Code" },
         { key: "tests", label: "Tests" },
         { key: "infra", label: "Infra/Configuration" },
-        { key: "internal", label: "Internal (Omnibot)" },
+        { key: "internal", label: "Internal (Omnibot, Lighthouse, etc)" },
         { key: "mixed", label: "Mixed" }
     ];
 
@@ -194,17 +198,51 @@ function printReport(stats: YearlyStats): void {
 }
 
 async function main() {
-    const { ldap, year } = parseCliArgs("ldap-yearly-stats");
+    const args = parseExtendedCliArgs("ldap-yearly-stats");
+
+    // Handle --help
+    if (args.showHelp) {
+        printUsage("ldap-yearly-stats", "Fetch and display PR statistics for a user by calendar year.");
+        process.exit(0);
+    }
+
+    // Handle --input (load from file)
+    if (args.inputFile) {
+        const cached = loadStatsFromFile<PRStats[]>(args.inputFile);
+        const stats: YearlyStats = {
+            ldap: cached.ldap,
+            githubUsername: cached.githubUsername,
+            year: cached.year,
+            prs: cached.data,
+            summary: generateSummary(cached.data)
+        };
+        printReport(stats);
+        return;
+    }
+
+    // Need ldap for fetching
+    if (!args.ldap) {
+        console.error("Please provide an LDAP username as an argument");
+        console.error("Usage: yarn ldap-yearly-stats <ldap> [year] [options]");
+        console.error("       yarn ldap-yearly-stats --input <file>");
+        console.error("Run with --help for more information");
+        process.exit(1);
+    }
 
     try {
-        const githubUsername = await resolveGithubUsername(ldap);
-        const prs = await fetchPRsForUser(githubUsername, year);
+        const githubUsername = await resolveGithubUsername(args.ldap);
+        const prs = await fetchPRsForUser(githubUsername, args.year);
         console.log(`Found ${prs.length} merged PRs`);
 
+        // Handle --output (save to file)
+        if (args.outputFile) {
+            saveStatsToFile(prs, args.ldap, githubUsername, args.year, args.outputFile);
+        }
+
         const stats: YearlyStats = {
-            ldap,
+            ldap: args.ldap,
             githubUsername,
-            year,
+            year: args.year,
             prs,
             summary: generateSummary(prs)
         };

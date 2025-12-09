@@ -1,11 +1,14 @@
 import { moment } from "./utils";
 import {
-    parseCliArgs,
+    parseExtendedCliArgs,
+    printUsage,
     resolveGithubUsername,
     getDateRange,
     paginatedGraphQLSearch,
     printMonthlyTrendChart,
-    printQuarterlyComparison
+    printQuarterlyComparison,
+    saveStatsToFile,
+    loadStatsFromFile
 } from "./ldap-stats-common";
 
 interface ReviewStats {
@@ -35,6 +38,7 @@ interface YearlyReviewStats {
             dismissed: number;
         };
         byMonth: Record<string, number>;
+        approvalsByMonth: Record<string, number>;
         topAuthorsReviewed: Array<{ author: string; count: number }>;
         topRepositories: Array<{ repo: string; count: number }>;
     };
@@ -47,13 +51,17 @@ async function fetchReviewsForUser(githubUsername: string, year: number): Promis
     const searchQuery = `reviewed-by:${githubUsername} created:${startDate}..${endDate} is:pr org:squareup repo:!zzz-archive-java`;
     const reviews: ReviewStats[] = [];
 
-    for await (const nodes of paginatedGraphQLSearch(searchQuery, (nodes) => nodes)) {
+    // Use smaller page size and longer timeout for review queries
+    // Review searches return more results and require fetching reviews for each PR
+    for await (const nodes of paginatedGraphQLSearch(searchQuery, (nodes) => nodes, { pageSize: 10, timeout: 120000 })) {
         for (const pr of nodes) {
             if (!pr || !pr.repository || !pr.reviews) continue;
 
-            // Filter reviews to only include ones by our user
+            // Filter reviews to only include ones by our user, excluding self-reviews
             const userReviews = pr.reviews.nodes.filter(
-                (review: any) => review.author?.login?.toLowerCase() === githubUsername.toLowerCase()
+                (review: any) =>
+                    review.author?.login?.toLowerCase() === githubUsername.toLowerCase() &&
+                    pr.author?.login?.toLowerCase() !== githubUsername.toLowerCase()
             );
 
             for (const review of userReviews) {
@@ -101,14 +109,20 @@ function generateSummary(reviews: ReviewStats[]): YearlyReviewStats["summary"] {
     };
 
     const byMonth: Record<string, number> = {};
+    const approvalsByMonth: Record<string, number> = {};
     const authorCounts: Record<string, number> = {};
     const repoCounts: Record<string, number> = {};
 
     for (const review of reviews) {
+        // Count by month (all reviews)
+        const month = moment(review.reviewedAt).format("YYYY-MM");
+        byMonth[month] = (byMonth[month] || 0) + 1;
+
         // Count by state
         switch (review.reviewState) {
             case "APPROVED":
                 byState.approved++;
+                approvalsByMonth[month] = (approvalsByMonth[month] || 0) + 1;
                 break;
             case "CHANGES_REQUESTED":
                 byState.changesRequested++;
@@ -120,10 +134,6 @@ function generateSummary(reviews: ReviewStats[]): YearlyReviewStats["summary"] {
                 byState.dismissed++;
                 break;
         }
-
-        // Count by month
-        const month = moment(review.reviewedAt).format("YYYY-MM");
-        byMonth[month] = (byMonth[month] || 0) + 1;
 
         // Count by author
         authorCounts[review.prAuthor] = (authorCounts[review.prAuthor] || 0) + 1;
@@ -150,6 +160,7 @@ function generateSummary(reviews: ReviewStats[]): YearlyReviewStats["summary"] {
         uniqueAuthorsReviewed: uniqueAuthors.size,
         byState,
         byMonth,
+        approvalsByMonth,
         topAuthorsReviewed,
         topRepositories
     };
@@ -175,6 +186,9 @@ function printReport(stats: YearlyReviewStats): void {
 
     // Monthly trend chart with trend analysis
     printMonthlyTrendChart(stats.summary.byMonth, stats.year, "Reviews");
+
+    // Monthly trend chart for approvals only
+    printMonthlyTrendChart(stats.summary.approvalsByMonth, stats.year, "Approvals");
 
     // Quarterly comparison
     printQuarterlyComparison(stats.summary.byMonth, stats.year, "Reviews");
@@ -234,17 +248,51 @@ function printReport(stats: YearlyReviewStats): void {
 }
 
 async function main() {
-    const { ldap, year } = parseCliArgs("ldap-yearly-review-stats");
+    const args = parseExtendedCliArgs("ldap-yearly-review-stats");
+
+    // Handle --help
+    if (args.showHelp) {
+        printUsage("ldap-yearly-review-stats", "Fetch and display PR review statistics for a user by calendar year.");
+        process.exit(0);
+    }
+
+    // Handle --input (load from file)
+    if (args.inputFile) {
+        const cached = loadStatsFromFile<ReviewStats[]>(args.inputFile);
+        const stats: YearlyReviewStats = {
+            ldap: cached.ldap,
+            githubUsername: cached.githubUsername,
+            year: cached.year,
+            reviews: cached.data,
+            summary: generateSummary(cached.data)
+        };
+        printReport(stats);
+        return;
+    }
+
+    // Need ldap for fetching
+    if (!args.ldap) {
+        console.error("Please provide an LDAP username as an argument");
+        console.error("Usage: yarn ldap-yearly-review-stats <ldap> [year] [options]");
+        console.error("       yarn ldap-yearly-review-stats --input <file>");
+        console.error("Run with --help for more information");
+        process.exit(1);
+    }
 
     try {
-        const githubUsername = await resolveGithubUsername(ldap);
-        const reviews = await fetchReviewsForUser(githubUsername, year);
+        const githubUsername = await resolveGithubUsername(args.ldap);
+        const reviews = await fetchReviewsForUser(githubUsername, args.year);
         console.log(`Found ${reviews.length} reviews`);
 
+        // Handle --output (save to file)
+        if (args.outputFile) {
+            saveStatsToFile(reviews, args.ldap, githubUsername, args.year, args.outputFile);
+        }
+
         const stats: YearlyReviewStats = {
-            ldap,
+            ldap: args.ldap,
             githubUsername,
-            year,
+            year: args.year,
             reviews,
             summary: generateSummary(reviews)
         };

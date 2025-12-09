@@ -2,6 +2,8 @@ import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
 import axios from "axios";
+import * as fs from "fs";
+import * as path from "path";
 import { credentials } from "./credentials";
 import { getGithubToLdapMap } from "./gh-ldap-map";
 import { initializeMoment } from "./utils";
@@ -462,4 +464,121 @@ export function printQuarterlyComparison(
             }
         }
     }
+}
+
+// CLI argument parsing with extended flags
+
+export interface ExtendedCliArgs {
+    ldap: string | null;
+    year: number;
+    inputFile: string | null;
+    outputFile: string | null;
+    showHelp: boolean;
+}
+
+export function parseExtendedCliArgs(scriptName: string): ExtendedCliArgs {
+    const args = process.argv.slice(2);
+
+    let ldap: string | null = null;
+    let year = new Date().getFullYear();
+    let inputFile: string | null = null;
+    let outputFile: string | null = null;
+    let showHelp = false;
+
+    for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+
+        if (arg === "--help" || arg === "-h") {
+            showHelp = true;
+        } else if (arg === "--input" || arg === "-i") {
+            inputFile = args[++i];
+        } else if (arg === "--output" || arg === "-o") {
+            outputFile = args[++i];
+        } else if (!arg.startsWith("-")) {
+            // Positional arguments: ldap, then year
+            if (!ldap) {
+                ldap = arg;
+            } else {
+                const parsedYear = parseInt(arg, 10);
+                if (!isNaN(parsedYear) && parsedYear >= 2000 && parsedYear <= 2100) {
+                    year = parsedYear;
+                }
+            }
+        }
+    }
+
+    return { ldap, year, inputFile, outputFile, showHelp };
+}
+
+export function printUsage(scriptName: string, description: string): void {
+    console.log(`Usage: yarn ${scriptName} <ldap> [year] [options]`);
+    console.log(`       yarn ${scriptName} --input <file>`);
+    console.log();
+    console.log(description);
+    console.log();
+    console.log("Arguments:");
+    console.log("  ldap          LDAP username to look up");
+    console.log("  year          Calendar year (default: current year)");
+    console.log();
+    console.log("Options:");
+    console.log("  --help, -h        Show this help message");
+    console.log("  --input, -i FILE  Read data from JSON file instead of fetching from GitHub");
+    console.log("  --output, -o FILE Save fetched data to JSON file for later use");
+    console.log();
+    console.log("Examples:");
+    console.log(`  yarn ${scriptName} estanfill 2024`);
+    console.log(`  yarn ${scriptName} estanfill 2024 --output data/estanfill-2024.json`);
+    console.log(`  yarn ${scriptName} --input data/estanfill-2024.json`);
+}
+
+// File I/O for caching stats data
+
+export interface CachedStatsFile<T> {
+    fetchedAt: string;
+    ldap: string;
+    githubUsername: string;
+    year: number;
+    data: T;
+}
+
+export function saveStatsToFile<T>(
+    data: T,
+    ldap: string,
+    githubUsername: string,
+    year: number,
+    filepath: string
+): void {
+    const cacheData: CachedStatsFile<T> = {
+        fetchedAt: new Date().toISOString(),
+        ldap,
+        githubUsername,
+        year,
+        data
+    };
+
+    // Ensure directory exists
+    const dir = path.dirname(filepath);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
+    fs.writeFileSync(filepath, JSON.stringify(cacheData, null, 2));
+    console.log(`Data saved to ${filepath}`);
+}
+
+export function loadStatsFromFile<T>(filepath: string): CachedStatsFile<T> {
+    if (!fs.existsSync(filepath)) {
+        console.error(`File not found: ${filepath}`);
+        process.exit(1);
+    }
+
+    const content = fs.readFileSync(filepath, "utf-8");
+    const data = JSON.parse(content) as CachedStatsFile<T>;
+
+    console.log(`Loaded data from ${filepath}`);
+    console.log(`  Fetched at: ${data.fetchedAt}`);
+    console.log(`  User: ${data.ldap} (@${data.githubUsername})`);
+    console.log(`  Year: ${data.year}`);
+
+    return data;
 }
