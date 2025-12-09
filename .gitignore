@@ -1,2 +1,4 @@
 .env
 node_modules
+github-username-to-ldap.csv
+data/
