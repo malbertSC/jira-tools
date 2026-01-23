@@ -171,7 +171,7 @@ ${sloPercentage === 100
     } else {
         rocketComments.forEach(comment => {
             const ldapName = convertToLdap(comment.ghUsername as string);
-            console.log(`@${ldapName} ${comment.body}`);
+            console.log(`- [@${ldapName}](${comment.url}): ${comment.body}`);
         });
         console.log(`Shoutout to the contributors for highlighting these! React to PR review comments with :rocket: to highlight them in these reviews!`);
     }
