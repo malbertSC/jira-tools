@@ -10,18 +10,22 @@ hacky way to get some useful metrics from ~~jira~~ github
     -   under "repository access", either specify the repository/repositories your team uses, or use "all repositories" if your team is frequently spinning up + working in new repositories
     -   under "repository permissions", set Issues, Metadata, and Pull Requests to "read only"
     -   click "generate token and request access". your request should be approved in a few days.
--   edit `github-username-to-ldap.csv` and add entries for all your team members
--   edit `src/working-hours.ts` to set your team's "core hours" that will be evaluated against for SLO tracking
+-   create `github-username-to-ldap.csv` with columns `github_username,ldap` mapping your team members' GitHub usernames to their LDAP usernames
+-   edit `src/working-hours.ts` to set your team's "core hours" for SLO tracking and update the `holidays` array as needed
 -   run `yarn`
--   copy `.env.test` to a new file called `.env` and replace the github username and password secrets with your own values
+-   copy `.env.test` to a new file called `.env` and replace the github username and PAT (Personal Access Token) with your own values
 
 # run
 
 -   `yarn get-pr-stats` to get assorted reviewer statistics
+-   `yarn get-pr-stats:report` same as above but in a condensed report format
 -   `yarn get-prs-past-slo` to get open PRs that are currently exceeding our review SLO
 -   `yarn user-activity <username>` to get activity report for a specific user
 -   `yarn get-pr-stats-for-label <label>` to get PR stats for a specific label
 -   `yarn label-contributor-stats [label] [days]` to analyze PRs by label with internal/external contributor comparison (see [LABEL_CONTRIBUTOR_STATS.md](./LABEL_CONTRIBUTOR_STATS.md) for details)
+-   `yarn label-comparison [hasLabel] [notLabel] [days]` to find PRs that have one label but not another (useful for finding PRs missing a required label)
+-   `yarn ldap-yearly-stats` to get yearly PR statistics
+-   `yarn ldap-yearly-review-stats` to get yearly review statistics
 
 # configuration
 
