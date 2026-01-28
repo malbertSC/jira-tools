@@ -2,8 +2,8 @@ hacky way to get some useful metrics from ~~jira~~ github
 
 # install
 
--   edit `github-username-to-ldap.csv` and add entries for all your team members
--   edit `src/working-hours.ts` to set your team's "core hours" that will be evaluated against for SLO tracking
+-   create `github-username-to-ldap.csv` with columns `github_username,ldap` mapping your team members' GitHub usernames to their LDAP usernames
+-   edit `src/working-hours.ts` to set your team's "core hours" for SLO tracking and update the `holidays` array as needed
 -   run `yarn`
 -   copy `.env.test` to `.env` and adjust settings as needed
 
@@ -25,9 +25,12 @@ Otherwise, you'll need to create a fine-grained PAT:
 # run
 
 -   `yarn get-pr-stats` to get assorted reviewer statistics
+-   `yarn get-pr-stats:report` same as above but in a condensed report format
 -   `yarn get-prs-past-slo` to get open PRs that are currently exceeding our review SLO
 -   `yarn user-activity <username>` to get activity report for a specific user
 -   `yarn get-pr-stats-for-label <label>` to get PR stats for a specific label
+-   `yarn ldap-yearly-stats` to get yearly PR statistics
+-   `yarn ldap-yearly-review-stats` to get yearly review statistics
 
 # configuration
 
