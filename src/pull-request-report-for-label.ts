@@ -35,7 +35,9 @@ async function main() {
         const repository = pr.repository_url.split("/").at(-1);
         const githubUsername = pr.user.login;
         const createdAt = moment(pr.created_at);
-        const parsedData = await getPrReviewerInfo(repository, number, createdAt, githubUsername);
+        const prState = pr.state;
+        const mergedAt = pr.pull_request?.merged_at || null;
+        const parsedData = await getPrReviewerInfo(repository, number, createdAt, githubUsername, prState, mergedAt);
         prReviewerInfo.push(parsedData);
         const prRocketComments = await getPrRocketComments(repository, number);
         rocketComments = rocketComments.concat(prRocketComments); 
