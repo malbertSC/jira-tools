@@ -2,23 +2,18 @@ import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
 import { credentials } from "./credentials";
-import { workingHours, holidays } from "./working-hours";
 import { getGithubToLdapMap } from "./gh-ldap-map";
-import * as moment from "moment-business-time";
 import { getAuthorQ, getPrListQ, getCreatedFilter } from "./list-prs";
-import { getDaysToLookBack } from "./utils";
+import { getDaysToLookBack, getSloHours, initializeMoment, moment } from "./utils";
 
-moment.updateLocale('en', {
-    workinghours: workingHours,
-    holidays
-});
+initializeMoment();
 
 export async function getOpenPrsPastSLO() {
     const ghUsernameToLdap = await getGithubToLdapMap();
-    const fourWorkingHoursAgo = getTimeFourWorkingHoursAgo();
+    const sloCutoffTime = getSloTime();
     const qs = [
         getAuthorQ(Object.keys(ghUsernameToLdap)),
-        getCreatedFilter(moment().subtract(getDaysToLookBack(), "d"), fourWorkingHoursAgo),
+        getCreatedFilter(moment().subtract(getDaysToLookBack(), "d"), sloCutoffTime),
         "review:none",
         "is:open"
     ]
@@ -26,9 +21,9 @@ export async function getOpenPrsPastSLO() {
     console.log(openPRs.map(pr => pr.pull_request.html_url));
 }
 
-function getTimeFourWorkingHoursAgo() {
+function getSloTime() {
     const time = moment();
-    time.subtractWorkingTime(4, "hours");
+    time.subtractWorkingTime(getSloHours(), "hours");
     return time;
 }
 

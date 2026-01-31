@@ -25,16 +25,28 @@ Otherwise, you'll need to create a fine-grained PAT:
 # run
 
 -   `yarn get-pr-stats` to get assorted reviewer statistics
+-   `yarn get-pr-stats:report` same as above but in a condensed report format
 -   `yarn get-prs-past-slo` to get open PRs that are currently exceeding our review SLO
 -   `yarn user-activity <username>` to get activity report for a specific user
 -   `yarn get-pr-stats-for-label <label>` to get PR stats for a specific label
+-   `yarn label-contributor-stats [label] [days]` to analyze PRs by label with internal/external contributor comparison (see [LABEL_CONTRIBUTOR_STATS.md](./LABEL_CONTRIBUTOR_STATS.md) for details)
+-   `yarn label-comparison [hasLabel] [notLabel] [days]` to find PRs that have one label but not another (useful for finding PRs missing a required label)
+-   `yarn ldap-yearly-stats` to get yearly PR statistics
+-   `yarn ldap-yearly-review-stats` to get yearly review statistics
 
 # configuration
 
 The number of days to look back can be configured using the `DAYS_TO_LOOK_BACK` environment variable:
 
--   Add to your `.env` file: `DAYS_TO_LOOK_BACK=30`
--   Default fallback: 15 days
+You can configure the following environment variables in your `.env` file:
+
+-   `DAYS_TO_LOOK_BACK=30`  
+    Number of days to look back for PRs and activity.  
+    Default fallback: 15 days
+
+-   `SLO_HOURS=4`  
+    Number of working hours allowed for SLO (Service Level Objective) review window.  
+    Default fallback: 4 hours
 
 # quirks & limitations
 

@@ -1,18 +1,15 @@
 import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
-import * as moment from "moment-business-time";
 import { getPrListQ, getAuthorQ, getCreatedFilter } from "./list-prs";
 import { getGithubToLdapMap } from "./gh-ldap-map";
 import { getPrReviewerInfo } from "./get-reviewer-data";
-import { workingHours, holidays } from "./working-hours";
 import { getPrRocketComments, RocketComments } from "./get-reaction-rockets";
-import { getDaysToLookBack } from "./utils";
+import { getDaysToLookBack, initializeMoment, moment } from "./utils";
 import { credentials } from "./credentials";
-moment.updateLocale('en', {
-    workinghours: workingHours,
-    holidays
-});
+import { getPrsOutOfSlo, getReviewerLeaderboard, getTotalPointsLeaderboard } from "./pr-analytics";
+
+initializeMoment();
 
 async function main() {
     const label = process.argv[2];
@@ -43,61 +40,11 @@ async function main() {
 
     const prsOutOfSlo = getPrsOutOfSlo(prReviewerInfo);
     console.log("out of SLO", prsOutOfSlo.length);
-    console.log(prsOutOfSlo.map(pr => `${pr.repository}+${pr.pr_number}`))
+    console.log(prsOutOfSlo.map(pr => `https://github.com/squareup/${pr.repository}/pull/${pr.pr_number}`))
     console.log("all", prReviewerInfo.length);
     console.log(getReviewerLeaderboard(prReviewerInfo));
     console.log(getTotalPointsLeaderboard(prReviewerInfo));
     console.log(rocketComments);
-}
-
-function getPrsOutOfSlo(prs: Array<any>) {
-    return prs.filter(pr => {
-        return !(pr.reviewers as Array<any>).some(review => review.is_within_slo);
-    })
-}
-
-function getReviewerLeaderboard(prs: Array<any>) {
-    const reviewsByUser = prs.reduce((accum, iter) => {
-        const reviewers = iter.reviewers;
-        if (!reviewers) return accum;
-        for (const reviewer of reviewers) {
-            if (!accum[reviewer.user]) {
-                accum[reviewer.user] = 0;
-            }
-            accum[reviewer.user]++;
-        }
-        return accum;
-    }, {});
-    return Object.keys(reviewsByUser).map(user => {
-        return {
-            user,
-            reviews: reviewsByUser[user]
-        }
-    }).sort((a, b) => b.reviews - a.reviews);
-}
-
-function getTotalPointsLeaderboard(prs: Array<any>) {
-    const pointsByUser = prs.reduce((accum, iter) => {
-        if (!accum[iter.author]) {
-            accum[iter.author] = 0;
-        }
-        accum[iter.author]++;
-        const reviewers = iter.reviewers;
-        if (!reviewers) return accum;
-        for (const reviewer of reviewers) {
-            if (!accum[reviewer.user]) {
-                accum[reviewer.user] = 0;
-            }
-            accum[reviewer.user]++;
-        }
-        return accum;
-    }, {});
-    return Object.keys(pointsByUser).map(user => {
-        return {
-            user,
-            points: pointsByUser[user]
-        }
-    }).sort((a, b) => b.points - a.points);
 }
 
 main(); 

@@ -1,16 +1,11 @@
 import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
-import * as moment from "moment-business-time";
 import axios from "axios";
 import { credentials } from "./credentials";
-import { workingHours, holidays } from "./working-hours";
-import { getDaysToLookBack } from "./utils";
+import { getDaysToLookBack, initializeMoment, moment } from "./utils";
 
-moment.updateLocale('en', {
-    workinghours: workingHours,
-    holidays
-});
+initializeMoment();
 
 interface UserActivity {
     username: string;

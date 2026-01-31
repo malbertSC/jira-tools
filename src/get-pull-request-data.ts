@@ -14,7 +14,7 @@ export async function getPullRequestData(repository, prNumber): Promise<Array<an
     query {
         repository(name: "${repository}" owner: "squareup") {
           pullRequest(number: ${prNumber}) {
-            reviews(first: 10) {
+            reviews(first: 50) {
               edges {
                 node {
                   id
