@@ -80,6 +80,18 @@ function renderBlock(block: ReportBlock): SlackBlock | SlackBlock[] | null {
                 }
             };
 
+        case 'rocket-list':
+            const rocketListText = block.items
+                .map(item => renderRocketItemForSlack(item))
+                .join('\n');
+            return {
+                type: 'section',
+                text: {
+                    type: 'mrkdwn',
+                    text: rocketListText
+                }
+            };
+
         case 'quote':
             return {
                 type: 'section',
@@ -110,6 +122,35 @@ function renderInlineArrayForSlack(content: ReportInline[]): string {
     return joined.replace(/\*\*([^*]+)\*\*/g, '*$1*');
 }
 
+// Renders rocket items without bullets and with blockquote for the comment body
+// Expected structure: [user, ' (', link, '): "', body, '"']
+function renderRocketItemForSlack(item: ReportInline[]): string {
+    // Find the comment body (the string after '): "')
+    let header = '';
+    let body = '';
+    let foundBodyStart = false;
+
+    for (let i = 0; i < item.length; i++) {
+        const inline = item[i];
+        if (typeof inline === 'string' && inline === '): "') {
+            foundBodyStart = true;
+            header += '): ';
+            continue;
+        }
+        if (foundBodyStart) {
+            // This is the body or the closing quote
+            if (typeof inline === 'string' && inline !== '"') {
+                body = inline;
+            }
+        } else {
+            header += renderInlineForSlack(inline);
+        }
+    }
+
+    header = header.replace(/\*\*([^*]+)\*\*/g, '*$1*');
+    return `${header}\n>${body}`;
+}
+
 function renderInlineForSlack(inline: ReportInline): string {
     if (typeof inline === 'string') {
         return inline;
@@ -118,6 +159,9 @@ function renderInlineForSlack(inline: ReportInline): string {
     switch (inline.type) {
         case 'link':
             return `<${inline.url}|${inline.text}>`;
+
+        case 'pr-link':
+            return `<${inline.url}|${inline.repo}#${inline.prNumber}>`;
 
         case 'user':
             return `@${inline.name}`;

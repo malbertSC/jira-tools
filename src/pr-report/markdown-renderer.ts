@@ -14,10 +14,11 @@ function renderBlock(block: ReportBlock): string {
             return renderInlineArray(block.content);
 
         case 'list':
+        case 'rocket-list':
             return block.items.map(item => `- ${renderInlineArray(item)}`).join('\n');
 
         case 'quote':
-            return '> ' + renderInlineArray(block.content);
+            return '"' + renderInlineArray(block.content) + '"';
 
         case 'divider':
             return '\n---';
@@ -38,7 +39,13 @@ function renderInline(inline: ReportInline): string {
 
     switch (inline.type) {
         case 'link':
-            return `[${inline.text}](${inline.url})`;
+            if (inline.text === inline.url) {
+                return inline.url;
+            }
+            return `${inline.text} (${inline.url})`;
+
+        case 'pr-link':
+            return inline.url;
 
         case 'user':
             return `@${inline.name}`;
@@ -47,6 +54,6 @@ function renderInline(inline: ReportInline): string {
             return `:${inline.name}:`;
 
         case 'strikethrough':
-            return `~~${renderInlineArray(inline.content)}~~`;
+            return renderInlineArray(inline.content);
     }
 }

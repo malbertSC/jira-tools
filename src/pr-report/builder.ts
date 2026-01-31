@@ -72,6 +72,7 @@ export function buildReport(data: ReportData): Report {
     report.push({
         type: 'section',
         content: [
+            '\n',
             { type: 'emoji', name: 'rocket' },
             ' **ROCKET WATCH** ',
             { type: 'emoji', name: 'rocket' }
@@ -196,20 +197,15 @@ function buildPrsOutOfSloSection(prsOutOfSlo: Array<any>, totalPrs: number, sloH
     introText += ':';
     blocks.push({ type: 'section', content: [introText] });
 
-    const items: ReportInline[][] = sortedPrs.map(pr => {
+    const prLines: ReportInline[] = [];
+    sortedPrs.forEach((pr, i) => {
         const url = `https://github.com/squareup/${pr.repository}/pull/${pr.pr_number}`;
-        const link: ReportInline = { type: 'link', text: `${pr.repository}+${pr.pr_number}`, url };
-
-        if (pr.state === 'merged') {
-            return [
-                { type: 'strikethrough', content: [link] },
-                ' (merged)'
-            ];
-        }
-        return [link];
+        const emoji = pr.state === 'open' ? 'gh-open' : 'gh-merged';
+        if (i > 0) prLines.push('\n');
+        prLines.push({ type: 'emoji', name: emoji }, ' ', { type: 'pr-link', repo: pr.repository, prNumber: pr.pr_number, url });
     });
 
-    blocks.push({ type: 'list', items });
+    blocks.push({ type: 'section', content: prLines });
 
     return blocks;
 }
@@ -229,24 +225,17 @@ function buildRocketSection(
         }];
     }
 
-    const blocks: ReportBlock[] = [];
-
-    for (const comment of rocketComments) {
+    const items: ReportInline[][] = rocketComments.map(comment => {
         const ldapName = convertToLdap(comment.ghUsername as string);
-        blocks.push({
-            type: 'section',
-            content: [
-                { type: 'user', name: ldapName },
-                ' (',
-                { type: 'link', text: 'link', url: comment.url as string },
-                '):'
-            ]
-        });
-        blocks.push({
-            type: 'quote',
-            content: [comment.body as string]
-        });
-    }
+        return [
+            { type: 'user', name: ldapName },
+            ' (',
+            { type: 'link', text: 'link', url: comment.url as string },
+            '): "',
+            comment.body as string,
+            '"'
+        ];
+    });
 
     const allReactors: string[] = [];
     for (const comment of rocketComments) {
@@ -269,9 +258,10 @@ function buildRocketSection(
         ' to highlight them in these reviews!'
     );
 
-    blocks.push({ type: 'section', content: shoutoutContent });
-
-    return blocks;
+    return [
+        { type: 'rocket-list', items },
+        { type: 'section', content: shoutoutContent }
+    ];
 }
 
 function buildThroughputSection(
