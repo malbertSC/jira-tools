@@ -10,12 +10,15 @@
         "start": "node -r ts-node/register ./src/index.ts",
         "start:debug": "node -r ts-node/register --inspect-brk ./src/index.ts",
         "get-pr-stats": "node -r ts-node/register ./src/pull-request-report.ts",
+        "get-pr-stats:report": "node -r ts-node/register ./src/pull-request-report.ts --format=report",
         "get-pr-stats:debug": "node -r ts-node/register --inspect-brk ./src/pull-request-report.ts",
         "get-prs-past-slo": "node -r ts-node/register ./src/get-open-prs-past-slo",
         "get-prs-past-slo:debug": "node -r ts-node/register --inspect-brk ./src/get-open-prs-past-slo",
         "get-pr-stats-for-label": "node -r ts-node/register ./src/pull-request-report-for-label.ts",
         "user-activity": "node -r ts-node/register ./src/user-activity-report.ts",
-        "user-activity:debug": "node -r ts-node/register --inspect-brk ./src/user-activity-report.ts"
+        "user-activity:debug": "node -r ts-node/register --inspect-brk ./src/user-activity-report.ts",
+        "ldap-yearly-stats": "node -r ts-node/register ./src/ldap-yearly-stats.ts",
+        "ldap-yearly-review-stats": "node -r ts-node/register ./src/ldap-yearly-review-stats.ts"
     },
     "devDependencies": {
         "@types/node": "^12.12.3",
