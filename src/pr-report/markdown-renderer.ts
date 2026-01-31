@@ -16,6 +16,9 @@ function renderBlock(block: ReportBlock): string {
         case 'list':
             return block.items.map(item => `- ${renderInlineArray(item)}`).join('\n');
 
+        case 'quote':
+            return '> ' + renderInlineArray(block.content);
+
         case 'divider':
             return '\n---';
 

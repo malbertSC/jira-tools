@@ -80,6 +80,15 @@ function renderBlock(block: ReportBlock): SlackBlock | SlackBlock[] | null {
                 }
             };
 
+        case 'quote':
+            return {
+                type: 'section',
+                text: {
+                    type: 'mrkdwn',
+                    text: '> ' + renderInlineArrayForSlack(block.content)
+                }
+            };
+
         case 'divider':
             return {
                 type: 'divider'

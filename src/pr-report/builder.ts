@@ -229,15 +229,24 @@ function buildRocketSection(
         }];
     }
 
-    const items: ReportInline[][] = rocketComments.map(comment => {
+    const blocks: ReportBlock[] = [];
+
+    for (const comment of rocketComments) {
         const ldapName = convertToLdap(comment.ghUsername as string);
-        return [
-            { type: 'user', name: ldapName },
-            ' (',
-            { type: 'link', text: 'link', url: comment.url as string },
-            `): ${comment.body}`
-        ];
-    });
+        blocks.push({
+            type: 'section',
+            content: [
+                { type: 'user', name: ldapName },
+                ' (',
+                { type: 'link', text: 'link', url: comment.url as string },
+                '):'
+            ]
+        });
+        blocks.push({
+            type: 'quote',
+            content: [comment.body as string]
+        });
+    }
 
     const allReactors: string[] = [];
     for (const comment of rocketComments) {
@@ -260,10 +269,9 @@ function buildRocketSection(
         ' to highlight them in these reviews!'
     );
 
-    return [
-        { type: 'list', items },
-        { type: 'section', content: shoutoutContent }
-    ];
+    blocks.push({ type: 'section', content: shoutoutContent });
+
+    return blocks;
 }
 
 function buildThroughputSection(

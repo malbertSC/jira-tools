@@ -11,7 +11,8 @@ export type ReportBlock =
   | { type: 'header'; text: string; emoji?: string }
   | { type: 'section'; content: ReportInline[] }
   | { type: 'list'; items: ReportInline[][] }
+  | { type: 'quote'; content: ReportInline[] }
   | { type: 'divider' }
-  | { type: 'context'; content: ReportInline[] };  // small/muted text
+  | { type: 'context'; content: ReportInline[] };
 
 export type Report = ReportBlock[];
