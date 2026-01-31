@@ -29,6 +29,9 @@ export async function getPullRequestData(repository, prNumber): Promise<Array<an
                       node {
                         id
                         content
+                        user {
+                          login
+                        }
                       }
                     }
                   }
@@ -45,6 +48,9 @@ export async function getPullRequestData(repository, prNumber): Promise<Array<an
                             node {
                               id
                               content
+                              user {
+                                login
+                              }
                             }
                           }
                         }
