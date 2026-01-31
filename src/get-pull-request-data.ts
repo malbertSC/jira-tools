@@ -29,6 +29,9 @@ export async function getPullRequestData(repository, prNumber): Promise<Array<an
                       node {
                         id
                         content
+                        user {
+                          login
+                        }
                       }
                     }
                   }
@@ -45,6 +48,9 @@ export async function getPullRequestData(repository, prNumber): Promise<Array<an
                             node {
                               id
                               content
+                              user {
+                                login
+                              }
                             }
                           }
                         }
@@ -67,6 +73,14 @@ export async function getPullRequestData(repository, prNumber): Promise<Array<an
             query: graphqlQuery
         }, credentials
     );
+    if (response.data.errors) {
+        console.error(`GraphQL error for ${repository}#${prNumber}:`, response.data.errors);
+        return [];
+    }
+    if (!response.data.data?.repository?.pullRequest) {
+        console.error(`PR not found: ${repository}#${prNumber}`);
+        return [];
+    }
     const reviewData = response.data.data.repository.pullRequest.reviews.edges;
     pullRequestDataCache[cacheKey] = reviewData;
     return reviewData;
