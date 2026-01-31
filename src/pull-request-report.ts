@@ -8,17 +8,7 @@ import { getPrReviewerInfo } from "./get-reviewer-data";
 import { workingHours, holidays } from "./working-hours";
 import { getPrRocketComments, RocketComments } from "./get-reaction-rockets";
 import { getDaysToLookBack } from "./utils";
-
-const credentials = {
-    headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/vnd.github+json"
-    },
-    auth: {
-        username: process.env.GITHUB_USERNAME ?? "",
-        password: process.env.GITHUB_PAT ?? ""
-    }
-}
+import { credentials } from "./credentials";
 moment.updateLocale('en', {
     workinghours: workingHours,
     holidays
